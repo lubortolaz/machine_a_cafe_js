@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+  <meta charset="utf-8">
+  <title>test machine-café en js</title>
+  <style>
+    body {
+        padding: 50px;
+        background-color: #99a2a2;
+    }
+    p {
+      font-family: "lucida sans unicode", "lucida grande", sans-serif;
+      font-size: 2em;
+      letter-spacing: -1pt;
+    }
+    textarea{
+      background-color: #332f2c;
+      color: #c9c9c9;
+      width: 100%;
+    }
+  </style>
+
+</head>
+  <body>
+
+    <form name="machine-cafe" id="machine-form" onSubmit="return check();">
+      <textarea id="simuconsole" rows="25" cols="80" value="" maxlength=200 disabled></textarea>
+      <br>
+      <input type="text" id="input_text" name="valeur" placeholder="Saisie">
+      <input type="submit" name="form_submit" value="envoyer">
+    </form>
+
+    <script>
+
+      const BOISSONS = [ "expresso", "cappuccino", "thé", "chocolat" ];
+      const PRIX = [ 0.5, 0.4, 0.45, 0.6 ];
+      var simuconsole = document.getElementById("simuconsole");
+      var forminput = document.forms["machine-cafe"].elements["valeur"];
+      var step = choix = sugar = reste_a_payer = 0;
+
+      console.log("start");
+
+      // vider la textarea
+      simuconsole.value = "";
+
+      // écrire dans la "console"
+      function writeSimuConsole(some_text){
+        simuconsole.value += some_text;
+        // défiler automatiquement vers le bas
+        simuconsole.scrollTop = simuconsole.scrollHeight;
+      }
+
+      // lancement
+      function lancerMachine(){
+        writeSimuConsole("******************BIENVENUE****************** \n");
+        writeSimuConsole("********************************************* \n");
+        writeSimuConsole("Liste des boissons disponibles : \n");
+        for(var i = 0;i < BOISSONS.length;i++){
+            writeSimuConsole(i + " : " + BOISSONS[i] + " " + PRIX[i] + "\n");
+        }
+        writeSimuConsole( "********************************************* \nChoix ? \n");
+        step = 1;
+      }
+
+      // fonction appelée à la validation du formulaire
+      function check(){
+        // valeur entrée dans la textbox
+        var val = forminput.value;
+        // pour chaque étape...
+        switch (step) {
+          case 1:
+            console.log("step 1 : choice");
+            choix = val;
+            if(typeof BOISSONS[choix] === 'undefined'){
+              writeSimuConsole( "Choix incorrect\n");
+			  lancerMachine();
+            }
+            else{
+              writeSimuConsole("Vous avez choisi : " + BOISSONS[choix] + "\n");
+              step++;
+              writeSimuConsole("Nombre de sucre ?\n");
+            }
+            break;
+          case 2:
+            console.log("step 2 : sugar");
+            sugar = val;
+            //writeSimuConsole(sugar + " sucres\n");
+            step++;
+            writeSimuConsole("Vous avez choisi : " + BOISSONS[choix] + " avec " + sugar + " sucre(s) \nConfimer? y/n\n");
+          break;
+          case 3:
+            console.log("step 3 : confirm");
+            if(val!="y" && val!="o"){
+              step=0;
+              lancerMachine();
+            }
+            else{
+              reste_a_payer = PRIX[choix];
+              writeSimuConsole( "Montant à payer : " + reste_a_payer + " euros\n");
+              writeSimuConsole( "Insérer pièce...\n");
+              step++;
+            }
+          break;
+          case 4:
+            console.log("step 4 : payment");
+            reste_a_payer = reste_a_payer - val;
+            reste_a_payer = reste_a_payer.toFixed(2);
+            if(reste_a_payer>0){
+                writeSimuConsole("Reste à payer : " + reste_a_payer + " euros\nInsérer pièce...\n");
+            }
+            else{
+              // rendu monnaie
+              if(reste_a_payer<0){
+                let mtt_a_rendre = Math.abs(reste_a_payer);
+                let nb_piece;
+                writeSimuConsole("Monnaie à rendre : " + mtt_a_rendre + " euros\nRendu : \n");
+                if(mtt_a_rendre>=2){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/2));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*2);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=2 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 2 euros\n");
+                }
+                if(mtt_a_rendre>=1){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/1));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*1);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=1 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 1 euros\n");
+                }
+                if(mtt_a_rendre>=0.5){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.5));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.5);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=0.5 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 50 centimes\n");
+                }
+                if(mtt_a_rendre>=0.2){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.2));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.2);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=0.2 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 20 centimes\n");
+                }
+                if(mtt_a_rendre>=0.1){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.1));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.1);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=0.1 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 10 centimes\n");
+                }
+                if(mtt_a_rendre>=0.05){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.05));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.05);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=0.05 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 5 centimes\n");
+                }
+                if(mtt_a_rendre>=0.02){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.02));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.02);
+                  mtt_a_rendre = Math.round(mtt_a_rendre*100)/100;
+                  //console.log("mtt_a_rendre>=0.01 | nb_piece = " + nb_piece + "| mtt_a_rendre = " + mtt_a_rendre);
+                  writeSimuConsole("   · " + nb_piece + " x 2 centimes\n");
+                }
+                if(mtt_a_rendre>=0.01){
+                  nb_piece = Math.round(Math.trunc(mtt_a_rendre/0.01));
+                  mtt_a_rendre = mtt_a_rendre - (nb_piece*0.01);
+                  writeSimuConsole("   · " + nb_piece + " x 1 centime\n");
+                }
+                writeSimuConsole("Transaction terminée ! \n");
+                step=1;
+              }
+              else{
+                writeSimuConsole("Transaction terminée ! \n");
+                step=1;
+              }
+            }
+          break;
+          default:
+            console.error("error : undefined step");
+        }
+
+        forminput.value = "";
+
+        //pour ne pas envoyer le formulaire
+        return false;
+      }
+      lancerMachine();
+    </script>
+
+  </body>
+</html>
